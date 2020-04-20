@@ -4,3 +4,4 @@
 tmp
 *.db
 *.sum
+.env

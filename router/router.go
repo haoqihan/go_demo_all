@@ -1,7 +1,7 @@
 package router
 
 import (
-    "go_demo_all/app/api/hello"
+    "go_demo_all/app/api/admin/login"
     "github.com/gogf/gf/frame/g"
 	"github.com/gogf/gf/net/ghttp"
 )
@@ -9,6 +9,6 @@ import (
 func init() {
 	s := g.Server()
 	s.Group("/", func(group *ghttp.RouterGroup) {
-		group.ALL("/", hello.Hello)
+		group.ALL("/",login.GfJWTMiddleware.LoginHandler)
 	})
 }

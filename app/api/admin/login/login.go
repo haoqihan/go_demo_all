@@ -3,7 +3,11 @@ package login
 import (
 	jwt "github.com/gogf/gf-jwt"
 	"github.com/gogf/gf-jwt/example/auth"
+	"github.com/gogf/gf/net/ghttp"
 	"github.com/gogf/gf/os/glog"
+	"github.com/gogf/gf/util/gvalid"
+	"go_demo_all/library/base"
+	"go_demo_all/library/input"
 	"time"
 )
 
@@ -39,4 +43,18 @@ func init() {
 
 	}
 	GfJWTMiddleware = authMiddleWare
+}
+
+//
+func Authenticator(r *ghttp.Request) (interface{}, error) {
+	var req *SignRequest
+	// 接收参数
+	input.JSONTOStruct(r, &req)
+	// 校验数据参数
+	if err := gvalid.CheckStruct(req, nil); err != nil {
+		base.FailParam(r, err.String())
+	}
+	// 查询数据
+	res :=
+
 }

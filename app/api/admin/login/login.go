@@ -1,13 +1,19 @@
 package login
 
 import (
+	"errors"
 	jwt "github.com/gogf/gf-jwt"
-	"github.com/gogf/gf-jwt/example/auth"
+	"github.com/gogf/gf/crypto/gmd5"
+	"github.com/gogf/gf/frame/g"
 	"github.com/gogf/gf/net/ghttp"
 	"github.com/gogf/gf/os/glog"
+	"github.com/gogf/gf/util/gconv"
 	"github.com/gogf/gf/util/gvalid"
+	"go_demo_all/app/model/users"
 	"go_demo_all/library/base"
+	"go_demo_all/library/helper"
 	"go_demo_all/library/input"
+	"go_demo_all/library/redis"
 	"time"
 )
 
@@ -31,11 +37,11 @@ func init() {
 		TokenHeadName:   "Bearer",                                           // token在请求头时的名称,客户端在header中传入Authorization 对一个值是Bearer + 空格 + token
 		TimeFunc:        time.Now,                                           // 测试或服务器在其他时区可设置该属性
 		Authenticator:   Authenticator,                                      // 根据登录信息对用户进行身份验证的回调函数
-		LoginResponse:   LoginResponse,                                      // 完成登录后返回的信息，用户可自定义返回数据，默认返回
-		RefreshResponse: auth.RefreshResponse,                               // 刷新token后返回的信息，用户可自定义返回数据，默认返回
-		Unauthorized:    auth.Unauthorized,                                  // 处理不进行授权的逻辑
-		IdentityHandler: auth.IdentityHandler,                               // 解析并设置用户身份信息
-		PayloadFunc:     auth.PayloadFunc,                                   // 登录期间的回调的函数
+		LoginResponse:   PostLogin,                                          // 完成登录后返回的信息，用户可自定义返回数据，默认返回
+		RefreshResponse: RefreshResponse,                                    // 刷新token后返回的信息，用户可自定义返回数据，默认返回
+		Unauthorized:    Unauthorized,                                       // 处理不进行授权的逻辑
+		IdentityHandler: IdentityHandler,                                    // 解析并设置用户身份信息
+		PayloadFunc:     PayloadFunc,                                        // 登录期间的回调的函数
 
 	})
 	if err != nil {
@@ -45,7 +51,7 @@ func init() {
 	GfJWTMiddleware = authMiddleWare
 }
 
-//
+// Authenticator 检测身份信息是否正常
 func Authenticator(r *ghttp.Request) (interface{}, error) {
 	var req *SignRequest
 	// 接收参数
@@ -55,6 +61,71 @@ func Authenticator(r *ghttp.Request) (interface{}, error) {
 		base.FailParam(r, err.String())
 	}
 	// 查询数据
-	res :=
+	res := users.GetOne(g.Map{"username": req.Username})
 
+	if res.Id <= 0 {
+		return nil, errors.New("用户名或密码错误")
+	}
+
+	reqPwd, errPwd := gmd5.Encrypt(req.Password + res.Salt)
+	if errPwd != nil {
+		glog.Error("md5加密异常", errPwd)
+		return nil, errors.New("服务器异常")
+	}
+	if reqPwd != res.Password {
+		return nil, errors.New("用户名或密码错误")
+	}
+	// 设置参数保存到请求中
+	r.SetParam("uuid", res.Uuid)
+
+	return g.Map{"username": res.Username, "uuid": res.Uuid}, nil
+}
+
+// PostLogin
+func PostLogin(r *ghttp.Request, code int, token string, expire time.Time) {
+	j, _ := r.GetJson()
+	// 格式化时间
+	t := helper.TimeToString(expire)
+
+	// 获取配置文件中redis前缀
+	var loginPrefix = g.Cfg("redis").Get("APP.LOGIN_PREFIX")
+	redis.Set(gconv.String(loginPrefix)+gconv.String(r.GetParam("uuid")), token)
+	base.Success(r, g.Map{
+		"username": j.GetString("username"),
+		"token":    token,
+		"expire":   t,
+	})
+
+}
+
+// RefreshResponse 刷新token信息
+func RefreshResponse(r *ghttp.Request, code int, token string, expire time.Time) {
+	var loginPrefix = g.Cfg("redis").Get("APP.LOGIN_PREFIX")
+	// 重新设置该用户的token信息
+	redis.Set(gconv.String(loginPrefix)+gconv.String(r.GetParam("uuid")), token)
+	base.Success(r, g.Map{"token": token, "expire": helper.TimeToString(expire)})
+}
+
+// Unauthorized 返回验证错误的信息
+func Unauthorized(r *ghttp.Request, code int, message string) {
+	// TODO 错误提示英文转换为中文，最好做一个配置文件
+	base.FailParam(r, message)
+}
+
+// IdentityHandler 设置JWT的标识。
+func IdentityHandler(r *ghttp.Request) interface{} {
+	claims := jwt.ExtractClaims(r)
+	return claims["id"]
+}
+
+// PayloadFunc 给token添加其他字段信息
+func PayloadFunc(data interface{}) jwt.MapClaims {
+	claims := jwt.MapClaims{}
+	params := data.(map[string]interface{})
+	if len(params) > 0 {
+		for k, v := range params {
+			claims[k] = v
+		}
+	}
+	return claims
 }

@@ -15,10 +15,12 @@ func Validator(r *ghttp.Request) {
 	login.GfJWTMiddleware.MiddlewareFunc()(r)
 	// 解析token
 	parseToken, _ := login.GfJWTMiddleware.ParseToken(r)
+
 	var token = parseToken.Raw
 	// 解析token中保存的信息
 	var claims = gconv.Map(parseToken.Claims)
 	r.SetParam("username", claims["username"])
+	r.SetParam("uuid", claims["uuid"])
 	if !GetRedisToken(gconv.String(claims["uuid"]), token) {
 		base.Fail(r, e.ErrorAuthCheckTokenFail)
 	}

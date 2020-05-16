@@ -1,0 +1,21 @@
+# For a quick start check out our HTTP Requests collection (Tools|HTTP Client|Open HTTP Requests Collection) or
+# paste cURL into the file and request will be converted to HTTP Request format.
+#
+# Following HTTP Request Live Templates are available:
+# * 'gtrp' and 'gtr' create a GET request with or without query parameters;
+# * 'ptr' and 'ptrp' create a POST request with a simple or parameter-like body;
+# * 'mptr' and 'fptr' create a POST request to submit a form with a text or file field (multipart/form-data);
+// 登录
+POST http://127.0.0.1:8199/v1/admin/loginSubmit
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "123456"
+}
+
+### 刷新接口
+GET http://127.0.0.1:8199/v1/admin/refresh
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1ODk2NDMzMjMsIm9yaWdfaWF0IjoxNTg5NjQzMDIzLCJ1c2VybmFtZSI6ImFkbWluIiwidXVpZCI6Ijk0MDkxYjFmYTZhYzRhMjdhMDZjMGI5MjE1NWFlYTZhIn0.Ppghf9e3395xYME-Vde7Qv0bJhv5rQFn-VBOteeFfSI
+###

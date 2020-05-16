@@ -2,6 +2,7 @@ package login
 
 import (
 	"errors"
+	"fmt"
 	jwt "github.com/gogf/gf-jwt"
 	"github.com/gogf/gf/crypto/gmd5"
 	"github.com/gogf/gf/frame/g"
@@ -77,6 +78,7 @@ func Authenticator(r *ghttp.Request) (interface{}, error) {
 	}
 	// 设置参数保存到请求中
 	r.SetParam("uuid", res.Uuid)
+	fmt.Println("auth 认证")
 
 	return g.Map{"username": res.Username, "uuid": res.Uuid}, nil
 }
@@ -86,6 +88,7 @@ func PostLogin(r *ghttp.Request, code int, token string, expire time.Time) {
 	j, _ := r.GetJson()
 	// 格式化时间
 	t := helper.TimeToString(expire)
+	fmt.Printf("%+v",r)
 
 	// 获取配置文件中redis前缀
 	var loginPrefix = g.Cfg("redis").Get("APP.LOGIN_PREFIX")
@@ -100,6 +103,7 @@ func PostLogin(r *ghttp.Request, code int, token string, expire time.Time) {
 
 // RefreshResponse 刷新token信息
 func RefreshResponse(r *ghttp.Request, code int, token string, expire time.Time) {
+	fmt.Println(code,token,expire)
 	var loginPrefix = g.Cfg("redis").Get("APP.LOGIN_PREFIX")
 	// 重新设置该用户的token信息
 	redis.Set(gconv.String(loginPrefix)+gconv.String(r.GetParam("uuid")), token)
@@ -109,6 +113,7 @@ func RefreshResponse(r *ghttp.Request, code int, token string, expire time.Time)
 // Unauthorized 返回验证错误的信息
 func Unauthorized(r *ghttp.Request, code int, message string) {
 	// TODO 错误提示英文转换为中文，最好做一个配置文件
+	fmt.Println("失败",message)
 	base.FailParam(r, message)
 }
 
@@ -129,3 +134,19 @@ func PayloadFunc(data interface{}) jwt.MapClaims {
 	}
 	return claims
 }
+/*
+
+paramsMap:map[
+		JWT_PAYLOAD:map[
+				exp:1.589642243e+09
+				orig_iat:1.589641943e+09
+				username:admin
+				uuid:94091b1fa6ac4a27a06c0b92155aea6a
+				]
+		JWT_TOKEN:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1ODk2NDIyNDMsIm9yaWdfaWF0IjoxNTg5NjQxOTQzLCJ1c2VybmFtZSI6ImFkbWluIiwidXVpZCI6Ijk0MDkxYjFmYTZhYzRhMjdhMDZjMGI5MjE1NWFlYTZhIn0.9aL3Qgy-XR6_3Ym9iXM6wmXrb1dSg8UeqACNIDKxV5s
+		username:admin
+]
+
+
+
+*/

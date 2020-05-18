@@ -4,6 +4,8 @@ import (
 	"github.com/gogf/gf/frame/g"
 	"github.com/gogf/gf/net/ghttp"
 	"go_demo_all/app/api/admin/login"
+	"go_demo_all/app/api/admin/user"
+	"go_demo_all/app/middleware/permission"
 	"go_demo_all/app/middleware/token"
 )
 
@@ -13,9 +15,11 @@ func init() {
 		group.POST("/admin/loginSubmit",login.GfJWTMiddleware.LoginHandler)
 		group.Group("/admin", func(group *ghttp.RouterGroup) {
 			//中间件检查token是否有效
-			group.Middleware(token.Validator)
+			group.Middleware(token.Validator,permission.CasBinMiddleware)
 			//刷新token令牌
 			group.GET("/refresh",login.GfJWTMiddleware.RefreshHandler)
+			// 用户管理组
+			group.ALL("/user",new(user.Controller))
 		})
 	})
 }

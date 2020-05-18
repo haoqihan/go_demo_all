@@ -18,4 +18,19 @@ Content-Type: application/json
 GET http://127.0.0.1:8199/v1/admin/refresh
 Content-Type: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1ODk2NDMzMjMsIm9yaWdfaWF0IjoxNTg5NjQzMDIzLCJ1c2VybmFtZSI6ImFkbWluIiwidXVpZCI6Ijk0MDkxYjFmYTZhYzRhMjdhMDZjMGI5MjE1NWFlYTZhIn0.Ppghf9e3395xYME-Vde7Qv0bJhv5rQFn-VBOteeFfSI
+
+### 测试test
+GET http://127.0.0.1:8199/v1/test
+Content-Type: application/json
+
+### /v1/admin/user/index
+GET http://127.0.0.1:8199/v1/admin/user/index
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1ODk4MTU3OTcsIm9yaWdfaWF0IjoxNTg5ODEyMTk3LCJ1c2VybmFtZSI6ImFkbWluIiwidXVpZCI6Ijk0MDkxYjFmYTZhYzRhMjdhMDZjMGI5MjE1NWFlYTZhIn0.7vBZWmEwSXk428rOr3STC8SMTsynuaRIkWH8SasBjJ4
+
+{
+ "page": 1,
+  "limit": 1
+}
+
 ###

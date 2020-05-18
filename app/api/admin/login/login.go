@@ -31,8 +31,8 @@ func init() {
 	authMiddleWare, err := jwt.New(&jwt.GfJWTMiddleware{
 		Realm:           "realm",                                            // 用于展示中间件名称
 		Key:             []byte("秘钥key"),                                    // 秘钥
-		Timeout:         5 * time.Minute,                                    // token 过期时间
-		MaxRefresh:      5 * time.Minute,                                    // 这是在任何刷新令牌端点上调用的提供的函数。如果传入的令牌是在该MaxRefreshTime时间范围内发出的，则此处理程序将创建/设置一个类似于的新令牌LoginHandler，并将该令牌传递到RefreshResponse
+		Timeout:         60 * time.Minute,                                   // token 过期时间
+		MaxRefresh:      60 * time.Minute,                                   // 这是在任何刷新令牌端点上调用的提供的函数。如果传入的令牌是在该MaxRefreshTime时间范围内发出的，则此处理程序将创建/设置一个类似于的新令牌LoginHandler，并将该令牌传递到RefreshResponse
 		IdentityKey:     "id",                                               // 身份验证的key值
 		TokenLookup:     "header: Authorization, query: token, cookie: jwt", // token检索模式，用于提取token-> Authorization
 		TokenHeadName:   "Bearer",                                           // token在请求头时的名称,客户端在header中传入Authorization 对一个值是Bearer + 空格 + token
@@ -78,7 +78,6 @@ func Authenticator(r *ghttp.Request) (interface{}, error) {
 	}
 	// 设置参数保存到请求中
 	r.SetParam("uuid", res.Uuid)
-	fmt.Println("auth 认证")
 
 	return g.Map{"username": res.Username, "uuid": res.Uuid}, nil
 }
@@ -88,8 +87,6 @@ func PostLogin(r *ghttp.Request, code int, token string, expire time.Time) {
 	j, _ := r.GetJson()
 	// 格式化时间
 	t := helper.TimeToString(expire)
-	fmt.Printf("%+v",r)
-
 	// 获取配置文件中redis前缀
 	var loginPrefix = g.Cfg("redis").Get("APP.LOGIN_PREFIX")
 	redis.Set(gconv.String(loginPrefix)+gconv.String(r.GetParam("uuid")), token)
@@ -103,7 +100,6 @@ func PostLogin(r *ghttp.Request, code int, token string, expire time.Time) {
 
 // RefreshResponse 刷新token信息
 func RefreshResponse(r *ghttp.Request, code int, token string, expire time.Time) {
-	fmt.Println(code,token,expire)
 	var loginPrefix = g.Cfg("redis").Get("APP.LOGIN_PREFIX")
 	// 重新设置该用户的token信息
 	redis.Set(gconv.String(loginPrefix)+gconv.String(r.GetParam("uuid")), token)
@@ -113,7 +109,7 @@ func RefreshResponse(r *ghttp.Request, code int, token string, expire time.Time)
 // Unauthorized 返回验证错误的信息
 func Unauthorized(r *ghttp.Request, code int, message string) {
 	// TODO 错误提示英文转换为中文，最好做一个配置文件
-	fmt.Println("失败",message)
+	fmt.Println("失败", message)
 	base.FailParam(r, message)
 }
 
